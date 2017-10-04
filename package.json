@@ -1,5 +1,5 @@
 {
-  "name": "TicaQA",
+  "name": "TicQ",
   "version": "1.0.1",
   "description": "Prototype for aqa site image compare",
   "main": "main.js",
@@ -8,7 +8,7 @@
     "pack": "electron-builder --dir",
     "dist": "electron-builder"
   },
-  "repository": "https://github.com/electron/electron-quick-start",
+  "repository": "https://github.com/CosticaPuntaru/sanity-checker",
   "keywords": [
     "Electron",
     "quick",
@@ -16,20 +16,19 @@
     "tutorial",
     "demo"
   ],
-  "author": "GitHub",
+  "author": "Costica Puntaru",
   "license": "CC0-1.0",
   "devDependencies": {
     "electron": "~1.7.8",
     "electron-reload": "^1.2.2",
-    "electron-builder": "^19.33.0",
+    "electron-builder": "^19.33.0"
+  },
+  "dependencies": {
+    "looks-same": "^3.2.1",
     "bluebird": "3.0.x",
     "lodash": "^4.17.3",
     "phantomjs": "2.1.7",
     "yargs": "3.29.x"
-  },
-  "dependencies": {
-    "looks-same": "^3.2.1",
-    "url-to-image": "^1.0.0"
   },
   "build": {
     "appId": "TicaQA",

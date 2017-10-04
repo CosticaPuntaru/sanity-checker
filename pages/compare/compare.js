@@ -6,7 +6,12 @@ var path = require('path');
 const dialog = remote.dialog;
 var looksSame = require('looks-same');
 var userConfig = require('../../user-config');
-
+document.addEventListener("keydown", function (e) {
+    if (e.keyCode === 123) { // F12
+        var window = remote.getCurrentWindow();
+        window.toggleDevTools();
+    }
+});
 document.querySelectorAll('.tabsHeader').forEach(function (tabHeader) {
     tabHeader.addEventListener('click', function () {
         document.querySelectorAll('.tabsHeader.active, .tabs.active').forEach((t) => t.classList.remove('active'));

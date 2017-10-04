@@ -1,8 +1,10 @@
 var userConfig = require('../user-config');
 
+const remote = require('electron').remote;
 const addProjectTextEL = document.getElementById('addProjectTextEL');
 const addProjectButtonEl = document.getElementById('addProjectButtonEl');
 const projectListEl = document.getElementById('projectListEl');
+document.getElementById('userData').innerHTML = userConfig.userDataConfig;
 
 const projects = userConfig.getConfig().projects;
 function renderProjectList() {
@@ -37,3 +39,10 @@ addProjectButtonEl.addEventListener('click', function () {
 
 
 console.log('userConfig', projects);
+
+document.addEventListener("keydown", function (e) {
+    if (e.keyCode === 123) { // F12
+        var window = remote.getCurrentWindow();
+        window.toggleDevTools();
+    }
+});

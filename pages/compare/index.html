@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Compare</title>
+</head>
+<body>
+<a href="../index.html">home</a>
+
+<div>
+    <h2>Url list</h2>
+    <input type="text" name="Url" placeholder="url to add" id="urlText">
+    <button id="urlButton">Add</button>
+    <ul id="urlList"></ul>
+</div>
+
+
+<div>
+    <h2>execution</h2>
+    <button id="execute">Execute</button>
+
+    <input type="text" name="executionName" placeholder="execution name" id="executionText">
+
+
+    <div id="response"></div>
+</div>
+
+
+<div>
+    <h2>comparison</h2>
+    <select name="compare1" id="compare1">
+    </select>
+    <select name="compare2" id="compare2">
+    </select>
+    <button id="compareButton">Compare</button>
+
+
+    <table>
+        <thead>
+        <tr>
+            <td>url</td><td>status</td><td>diff</td>
+        </tr>
+        </thead>
+        <tbody id="compareEl">
+
+        </tbody>
+    </table>
+</div>
+<script>
+    require('./compare.js')
+</script>
+<style>
+    .fullScreenImage{
+        position: fixed;
+        top: 0;
+        left:0;
+        right: 0;
+        bottom: 0;
+        width: 100%!important;
+        height: 100%!important;
+    }
+</style>
+</body>
+</html>

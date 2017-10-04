@@ -1,0 +1,38 @@
+{
+  "name": "TicaQA",
+  "version": "1.0.0",
+  "description": "Prototype for aqa site image compare",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
+  },
+  "repository": "https://github.com/electron/electron-quick-start",
+  "keywords": [
+    "Electron",
+    "quick",
+    "start",
+    "tutorial",
+    "demo"
+  ],
+  "author": "GitHub",
+  "license": "CC0-1.0",
+  "devDependencies": {
+    "electron": "~1.7.8",
+    "electron-reload": "^1.2.2",
+    "electron-builder": "^19.33.0"
+  },
+  "dependencies": {
+    "capture-phantomjs": "^1.4.1",
+    "lodash": "^4.17.4",
+    "looks-same": "^3.2.1",
+    "url-to-image": "^1.0.0",
+  },
+  "build": {
+    "appId": "TicaQA",
+    "mac": {
+      "category": "com.tica.qaImageCompare"
+    }
+  }
+}

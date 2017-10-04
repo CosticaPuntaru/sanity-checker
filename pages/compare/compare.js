@@ -1,4 +1,4 @@
-var urlToImage = require('url-to-image');
+var urlToImage = require('../../url-to-image');
 const remote = require('electron').remote;
 const shell = remote.shell;
 var fs = require('fs');
@@ -7,6 +7,14 @@ const dialog = remote.dialog;
 var looksSame = require('looks-same');
 var userConfig = require('../../user-config');
 
+document.querySelectorAll('.tabsHeader').forEach(function (tabHeader) {
+    tabHeader.addEventListener('click', function () {
+        document.querySelectorAll('.tabsHeader.active, .tabs.active').forEach((t) => t.classList.remove('active'));
+        tabHeader.classList.add('active')
+        console.log('tabHeader.for', tabHeader.getAttribute('for'));
+        document.getElementById(tabHeader.getAttribute('for')).classList.add('active')
+    })
+})
 
 class Project {
     constructor(projectName = userConfig.getConfig().projectName) {
@@ -57,18 +65,24 @@ const list = project.get('urlList') || [];
 const urlListElement = document.getElementById('urlList');
 renderUrlList();
 const urlButton = document.getElementById('urlButton');
+const urlDelay = document.getElementById('urlDelay');
 const urlText = document.getElementById('urlText');
 
 
 urlButton.addEventListener('click', function () {
     var value = urlText.value.trim();
+    var delay = urlDelay.value.trim();
+
     if (value) {
-        addUrl({ url: value });
+        if (list.find((u) => u.url === value)) {
+            alert('url exists');
+            return;
+        }
+        addUrl({ url: value, delay });
     }
 });
 
 function addUrl(item) {
-
     list.push(item);
     project.set('urlList', list);
     renderUrlList();
@@ -83,8 +97,9 @@ function removeUrl(index) {
 function renderUrlList() {
     urlListElement.innerHTML = '';
     list.map(function (item, index) {
-        const li = document.createElement('li');
-        const textEl = document.createElement('span');
+        const li = document.createElement('tr');
+        const textEl = document.createElement('td');
+        const butEltd = document.createElement('td');
         const butEl = document.createElement('button');
         butEl.innerHTML = 'x';
 
@@ -93,9 +108,11 @@ function renderUrlList() {
         });
 
         li.appendChild(textEl);
-        li.appendChild(butEl);
+        butEltd.appendChild(butEl);
+        li.appendChild(butEltd);
 
-        textEl.innerHTML = item.url;
+        textEl.innerHTML = `${item.url} - ${item.delay || 300}ms`;
+        textEl.setAttribute('title', textEl.innerHTML);
         urlListElement.appendChild(li);
     });
 }
@@ -107,7 +124,15 @@ const executionText = document.getElementById('executionText');
 
 
 execute.addEventListener('click', function execute() {
-    const execName = executionText.value;
+    const execName = executionText.value.trim();
+    if (!execName) {
+        alert('insert execution name');
+        return;
+    }
+    if (project.get('executions').find((e) => e.name === execName)) {
+        alert('Execution name already used');
+        return;
+    }
     response.innerHTML = 'executing';
     let success = 0;
     let errors = 0;
@@ -115,22 +140,26 @@ execute.addEventListener('click', function execute() {
     let errorsMessage = "";
 
     function display() {
-        response.innerHTML = ` success: ${success}, errors: ${errors}, left: ${total - success - errors} <br/> ${errorsMessage}`
+        response.innerHTML = `success: ${success}, errors: ${errors}, left: ${total - success - errors} <br/> ${errorsMessage}`
     }
 
     Promise.all(list.map(function (item) {
-        urlToImage(item.url, path.join(project.get('directory'), execName, ( new Buffer(item.url) ).toString("base64")) + '.png')
-            .then(function () {
-                success++;
-                display()
-                // now google.png exists and contains screenshot of google.com
-            })
-            .catch(function (err) {
-                errors++;
-                display();
-                errorsMessage += "<br>" + err.message;
-                console.error(err);
-            });
+        urlToImage(
+            item.url,
+            path.join(project.get('directory'), execName, ( new Buffer(item.url) ).toString("base64")) + '.png',
+            {
+                requestTimeout: item.delay
+            }
+        ).then(function () {
+            success++;
+            display()
+            // now google.png exists and contains screenshot of google.com
+        }).catch(function (err) {
+            errors++;
+            display();
+            errorsMessage += "<br>" + err.message;
+            console.error(err);
+        });
     })).then((function (theList) {
         const exec = project.get('executions');
         exec.push({ name: execName, time: new Date() });
@@ -201,15 +230,14 @@ compareButtonEL.addEventListener('click', function () {
     const compare1List = fs.readdirSync(compare1Dir);
     const compare2List = fs.readdirSync(compare2Dir);
     const results = [];
-    let success = 0;
 
     compare1List.forEach(function (c1) {
         const c2Index = compare2List.indexOf(c1);
-
+        console.log('c1', c1, c2Index);
         const c = {
             name: c1,
             compareable: c2Index > -1,
-            status: 'c2 notfound'
+            status: 'Missing target'
         };
         results.push(c)
         if (c.compareable) {
@@ -218,10 +246,13 @@ compareButtonEL.addEventListener('click', function () {
             const c1Path = path.join(compare1Dir, c1);
             const c2Path = path.join(compare2Dir, c1);
             looksSame(c1Path, c2Path, function (error, equal) {
+                console.log('error', error, equal);
                 if (error) {
                     c.status = error
+                    renderComparison(results);
                 } else if (equal) {
                     c.status = 'same';
+                    renderComparison(results);
                 } else {
                     c.status = 'differs';
                     renderComparison(results);
@@ -251,8 +282,9 @@ compareButtonEL.addEventListener('click', function () {
         results.push({
             name: c2,
             compareable: false,
-            status: 'c1 notfound'
+            status: 'Missing base'
         });
     });
-    renderExecutions(results);
+
+    renderComparison(results);
 });

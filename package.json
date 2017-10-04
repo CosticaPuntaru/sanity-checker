@@ -1,6 +1,6 @@
 {
   "name": "TicaQA",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Prototype for aqa site image compare",
   "main": "main.js",
   "scripts": {
@@ -21,13 +21,15 @@
   "devDependencies": {
     "electron": "~1.7.8",
     "electron-reload": "^1.2.2",
-    "electron-builder": "^19.33.0"
+    "electron-builder": "^19.33.0",
+    "bluebird": "3.0.x",
+    "lodash": "^4.17.3",
+    "phantomjs": "2.1.7",
+    "yargs": "3.29.x"
   },
   "dependencies": {
-    "capture-phantomjs": "^1.4.1",
-    "lodash": "^4.17.4",
     "looks-same": "^3.2.1",
-    "url-to-image": "^1.0.0",
+    "url-to-image": "^1.0.0"
   },
   "build": {
     "appId": "TicaQA",

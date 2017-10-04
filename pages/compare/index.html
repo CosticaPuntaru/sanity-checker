@@ -5,60 +5,249 @@
     <title>Compare</title>
 </head>
 <body>
-<a href="../index.html">home</a>
+<div class="tabset">
+    <ul class="tabsHeaderContainer">
+        <li><a href="../index.html">Home</a></li>
+        <li class="tabsHeader active" for="tab1">Url List</li>
+        <li class="tabsHeader" for="tab2">Executions</li>
+        <li class="tabsHeader" for="tab3">Comparisons</li>
+    </ul>
+    <section class="tabs active tab-panel" id="tab1">
+        <h2>Url list</h2>
+        <input type="text" name="Url" placeholder="url to add" id="urlText">
+        <input type="text" name="urlDelay" placeholder="delay" id="urlDelay" value="300" step="1" min="0">
+        <button id="urlButton">Add</button>
+        <table class="flat-table">
+            <thead>
+            <th width="90%">url</th>
+            <th>Action</th>
+            </thead>
+            <tbody id="urlList">
 
-<div>
-    <h2>Url list</h2>
-    <input type="text" name="Url" placeholder="url to add" id="urlText">
-    <button id="urlButton">Add</button>
-    <ul id="urlList"></ul>
-</div>
-
-
-<div>
-    <h2>execution</h2>
-    <button id="execute">Execute</button>
-
-    <input type="text" name="executionName" placeholder="execution name" id="executionText">
-
-
-    <div id="response"></div>
-</div>
-
-
-<div>
-    <h2>comparison</h2>
-    <select name="compare1" id="compare1">
-    </select>
-    <select name="compare2" id="compare2">
-    </select>
-    <button id="compareButton">Compare</button>
+            </tbody>
+        </table>
+    </section>
 
 
-    <table>
-        <thead>
-        <tr>
-            <td>url</td><td>status</td><td>diff</td>
-        </tr>
-        </thead>
-        <tbody id="compareEl">
+    <section class="tabs tab-panel" id="tab2">
+        <h2>execution</h2>
+        <button id="execute">Execute</button>
 
-        </tbody>
-    </table>
+        <input type="text" name="executionName" placeholder="execution name" id="executionText">
+
+
+        <div id="response"></div>
+    </section>
+
+
+    <section class="tabs tab-panel" id="tab3">
+        <h2>comparison</h2>
+        <table class="flat-table ">
+            <thead>
+
+            <tr>
+                <th>
+                    <div>Base</div>
+                </th>
+                <th>
+                    <div>Target</div>
+                </th>
+
+                <th>
+                </th>
+            </tr>
+            </thead>
+            <tr>
+                <td>
+                    <select name="compare1" id="compare1">
+                    </select>
+
+                </td>
+                <td>
+                    <select name="compare2" id="compare2">
+                    </select>
+
+                </td>
+                <td>
+                    <button id="compareButton">Compare</button>
+                </td>
+            </tr>
+        </table>
+
+
+        <table class="resultTable flat-table ">
+            <thead>
+            <tr>
+                <th>url</th>
+                <th>status</th>
+                <th>diff</th>
+            </tr>
+            </thead>
+            <tbody id="compareEl">
+            <tr>
+                <td colspan="3">Execute comparision</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+
 </div>
 <script>
     require('./compare.js')
 </script>
 <style>
-    .fullScreenImage{
+    .fullScreenImage {
         position: fixed;
         top: 0;
-        left:0;
+        left: 0;
         right: 0;
         bottom: 0;
-        width: 100%!important;
-        height: 100%!important;
+        width: 100% !important;
+        height: 100% !important;
     }
+
+    .tabsHeaderContainer li {
+        display: inline-block;
+        cursor: pointer;
+    }
+
+    .tabsHeaderContainer {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    #urlList {
+        padding: 0;
+    }
+
+
+    #urlList td {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        max-width: 100%;
+        width: 90%;
+    }
+
+    /*
+ CSS for the main interaction
+*/
+    .tabset > input[type="radio"] {
+        position: absolute;
+        left: -200vw;
+    }
+
+    .tabset .tab-panel {
+        display: none;
+    }
+
+    .tabset .tab-panel.active {
+        display: block;
+    }
+
+    /*
+     Styling
+    */
+    body {
+        font: 16px/1.5em "Overpass", "Open Sans", Helvetica, sans-serif;
+        color: #333;
+        font-weight: 300;
+    }
+
+    .tabset .tabsHeader {
+        position: relative;
+        display: inline-block;
+        padding: 15px 15px 25px;
+        border: 1px solid transparent;
+        border-bottom: 0;
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    .tabset a {
+        color: #000;
+        text-decoration: none;
+    }
+
+    .tabset .tabsHeader::after {
+        content: "";
+        position: absolute;
+        left: 15px;
+        bottom: 10px;
+        width: 22px;
+        height: 4px;
+        background: #8d8d8d;
+    }
+
+    .tabset .tabsHeader:hover,
+    .tabset .tabsHeader.active {
+        color: #06c;
+    }
+
+    .tabset .tabsHeader:hover::after,
+    .tabset .tabsHeader.active::after {
+        background: #06c;
+    }
+
+    .tabset .tabsHeader.active {
+        border-color: #ccc;
+        border-bottom: 1px solid #fff;
+        margin-bottom: -1px;
+    }
+
+    .tab-panel {
+        padding: 30px 0;
+        border-top: 1px solid #ccc;
+    }
+
+    /*
+     Demo purposes only
+    */
+    *,
+    *:before,
+    *:after {
+        box-sizing: border-box;
+    }
+
+    body {
+        padding: 30px;
+    }
+
+    .tabset {
+        max-width: 65em;
+    }
+
+    .flat-table {
+        display: block;
+        font-family: sans-serif;
+        -webkit-font-smoothing: antialiased;
+        font-size: 115%;
+        overflow: auto;
+        width: auto;
+        max-width: 100%;
+        position: relative;
+
+    }
+
+    .flat-table th {
+        background-color: rgb(112, 196, 105);
+        color: white;
+        font-weight: normal;
+        padding: 20px 30px;
+        text-align: center;
+        overflow: auto;
+    }
+
+    .flat-table td {
+        background-color: rgb(238, 238, 238);
+        color: rgb(111, 111, 111);
+        padding: 20px 30px;
+    }
+    tbody{
+        min-width:100%;
+    }
+
 </style>
 </body>
 </html>

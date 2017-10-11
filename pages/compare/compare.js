@@ -1,4 +1,4 @@
-var urlToImage = require('../../url-to-image');
+
 const remote = require('electron').remote;
 const shell = remote.shell;
 var fs = require('fs');
@@ -9,7 +9,35 @@ var userConfig = require('../../user-config');
 var Queue = require('promise-queue')
 var webdriverio = require('webdriverio');
 const window = remote.getCurrentWindow();
+var selenium = require('selenium-standalone')
+var install = new Promise(function (resolve, reject) {
+    selenium.install({}, function (error) {
+        if (error) {
+            reject(error);
+        } else {
+            resolve()
+        }
+    })
+})
 
+var start = install.then(function () {
+    new Promise(function (resolve, reject) {
+        selenium.start({}, function (error) {
+            if (error) {
+                reject(error);
+            } else {
+                resolve()
+            }
+        })
+    })
+})
+const loadingAPPEL = document.getElementById('loadingAPP');
+
+start.then(() => {
+    loadingAPPEL.classList.remove('fullscreenAppLoader');
+}).catch((err) => {
+    alert(err)
+})
 class Project {
     constructor(projectName = userConfig.getConfig().projectName) {
         const config = userConfig.getConfig();

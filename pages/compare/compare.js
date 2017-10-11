@@ -6,20 +6,9 @@ var path = require('path');
 const dialog = remote.dialog;
 var looksSame = require('looks-same');
 var userConfig = require('../../user-config');
-document.addEventListener("keydown", function (e) {
-    if (e.keyCode === 123) { // F12
-        var window = remote.getCurrentWindow();
-        window.toggleDevTools();
-    }
-});
-document.querySelectorAll('.tabsHeader').forEach(function (tabHeader) {
-    tabHeader.addEventListener('click', function () {
-        document.querySelectorAll('.tabsHeader.active, .tabs.active').forEach((t) => t.classList.remove('active'));
-        tabHeader.classList.add('active')
-        console.log('tabHeader.for', tabHeader.getAttribute('for'));
-        document.getElementById(tabHeader.getAttribute('for')).classList.add('active')
-    })
-})
+var Queue = require('promise-queue')
+var webdriverio = require('webdriverio');
+const window = remote.getCurrentWindow();
 
 class Project {
     constructor(projectName = userConfig.getConfig().projectName) {
@@ -64,61 +53,178 @@ class Project {
     }
 }
 
-
 const project = new Project();
-const list = project.get('urlList') || [];
-const urlListElement = document.getElementById('urlList');
+
+const defaultConfigOptionsDefault = {
+    maxClientCount: 5,
+    timeout: 3000,
+    setViewportSize: {
+        width: 1024,
+        height: 764
+    },
+    webDriverIo: {
+        desiredCapabilities: {
+            browserName: 'chrome'
+        }
+    }
+};
+let defaultConfigOptions = project.get('defaultConfigOptions') || defaultConfigOptionsDefault;
+
+const defaultTestCase = require('./test-case/default-test-case');
+const waitForTimeTestCase = require('./test-case/wait-for-time-test-case');
+const waitForTextTestCase = require('./test-case/wait-for-text-test-case');
+const waitForElementTestCase = require('./test-case/wait-for-element-test-case');
+
+document.addEventListener("keydown", function (e) {
+    if (e.keyCode === 123) { // F12
+        window.toggleDevTools();
+    }
+});
+document.querySelectorAll('.tabsHeader').forEach(function (tabHeader) {
+    tabHeader.addEventListener('click', function () {
+        document.querySelectorAll('.tabsHeader.active, .tabs.active').forEach((t) => t.classList.remove('active'));
+        tabHeader.classList.add('active')
+        console.log('tabHeader.for', tabHeader.getAttribute('for'));
+        document.getElementById(tabHeader.getAttribute('for')).classList.add('active')
+    })
+})
+
+
+const projectConfigUrlList = project.get('urlList') || [];
+const urlListEL = document.getElementById('urlList');
+const defaultConfigurationEl = document.getElementById('defaultConfiguration');
+const defaultConfigurationButtonEl = document.getElementById('defaultConfigurationButton');
+defaultConfigurationEl.value = JSON.stringify(defaultConfigOptions, false, 4);
+defaultConfigurationButton.addEventListener('click', function () {
+    try {
+        defaultConfigOptions = JSON.parse(defaultConfigurationEl.value)
+        project.set('defaultConfigOptions', defaultConfigOptions)
+    } catch (err) {
+        alert(err)
+    }
+})
 renderUrlList();
-const urlButton = document.getElementById('urlButton');
-const urlDelay = document.getElementById('urlDelay');
-const urlText = document.getElementById('urlText');
+const urlButtonEL = document.getElementById('urlButton');
+const urlTextEL = document.getElementById('urlText');
+const testTypeEL = document.getElementById('testType');
+const testCaseValueEL = document.getElementById('testCaseValue');
 
+testTypeEL.addEventListener('change', function () {
+    const testType = testTypeEL.options[testTypeEL.selectedIndex].value;
 
-urlButton.addEventListener('click', function () {
-    var value = urlText.value.trim();
-    var delay = urlDelay.value.trim();
+    switch (testType) {
+        case 'waitForTime':
+            testCaseValueEL.type = 'number';
+            testCaseValueEL.value = 3000;
+            testCaseValueEL.placeholder = 'Insert time in ms';
+            testCaseValueEL.classList.remove('hidden');
+            break;
 
-    if (value) {
-        if (list.find((u) => u.url === value)) {
-            alert('url exists');
+        case 'waitForText':
+            testCaseValueEL.type = 'text';
+            testCaseValueEL.value = '';
+            testCaseValueEL.placeholder = 'Insert a text to wait for';
+            testCaseValueEL.classList.remove('hidden');
+            break;
+
+        case 'waitForElement':
+            testCaseValueEL.type = 'text';
+            testCaseValueEL.value = '';
+            testCaseValueEL.placeholder = 'Insert a css selector to wait for';
+            testCaseValueEL.classList.remove('hidden');
+            break;
+        case 'customTest':
+            testCaseValueEL.type = 'file';
+            testCaseValueEL.classList.remove('hidden');
+            break;
+
+        default:
+            testCaseValueEL.classList.add('hidden');
+            break;
+
+    }
+});
+
+testCaseValueEL.addEventListener('change', function () {
+    const testType = testTypeEL.options[testTypeEL.selectedIndex].value;
+    if (testType !== 'customTest') {
+        return
+    }
+
+    const scriptFile = testCaseValueEL.files[0];
+    if (scriptFile) {
+        let scriptFilePath = path.relative(project.get('directory'), scriptFile.path);
+        if (scriptFilePath.indexOf('./') !== 0) {
+            alert('The script chosen as a test case is not under the project directory')
+        }
+    }
+});
+
+urlButtonEL.addEventListener('click', function () {
+    const url = urlTextEL.value.trim();
+    const testType = testTypeEL.options[testTypeEL.selectedIndex].value;
+    let testConfigValue;
+    if (testType === 'customTest') {
+        const scriptFile = testCaseValueEL.files[0];
+        if (!scriptFile) {
+            return alert('please select a test case file script');
+        }
+        testConfigValue = path.relative(project.get('directory'), scriptFile.path);
+    } else {
+        testConfigValue = testCaseValueEL.value;
+    }
+    if (url) {
+        if (projectConfigUrlList.find((u) => u.url === url && u.testConfigValue === testConfigValue && u.testType === testType)) {
+            alert('this test already exists');
             return;
         }
-        addUrl({ url: value, delay });
+        addUrl({ url: url, testConfigValue, testType });
+    } else {
+        alert('please insert an url')
     }
 });
 
 function addUrl(item) {
-    list.push(item);
-    project.set('urlList', list);
+    projectConfigUrlList.push(item);
+    project.set('urlList', projectConfigUrlList);
     renderUrlList();
 }
 
 function removeUrl(index) {
-    list.splice(index, 1);
-    project.set('urlList', list);
+    projectConfigUrlList.splice(index, 1);
+    project.set('urlList', projectConfigUrlList);
     renderUrlList();
 }
 
 function renderUrlList() {
-    urlListElement.innerHTML = '';
-    list.map(function (item, index) {
+    urlListEL.innerHTML = '';
+    projectConfigUrlList.forEach(function (item, index) {
         const li = document.createElement('tr');
+        const countEl = document.createElement('td');
         const textEl = document.createElement('td');
         const butEltd = document.createElement('td');
+        const testTypeEltd = document.createElement('td');
+        const testValueEltd = document.createElement('td');
         const butEl = document.createElement('button');
         butEl.innerHTML = 'x';
 
         butEl.addEventListener('click', function () {
             removeUrl(index);
         });
+        testTypeEltd.innerHTML = item.testType || 'default';
+        testValueEltd.innerHTML = item.testConfigValue || 'N/A';
 
+        countEl.innerHTML = index + 1;
+        li.appendChild(countEl);
         li.appendChild(textEl);
+        li.appendChild(testTypeEltd);
+        li.appendChild(testValueEltd);
         butEltd.appendChild(butEl);
         li.appendChild(butEltd);
 
-        textEl.innerHTML = `${item.url} - ${item.delay || 300}ms`;
+        textEl.innerHTML = item.url;
         textEl.setAttribute('title', textEl.innerHTML);
-        urlListElement.appendChild(li);
+        urlListEL.appendChild(li);
     });
 }
 
@@ -141,30 +247,74 @@ execute.addEventListener('click', function execute() {
     response.innerHTML = 'executing';
     let success = 0;
     let errors = 0;
-    let total = list.length;
+    let total = projectConfigUrlList.length;
     let errorsMessage = "";
 
     function display() {
         response.innerHTML = `success: ${success}, errors: ${errors}, left: ${total - success - errors} <br/> ${errorsMessage}`
     }
 
-    Promise.all(list.map(function (item) {
-        urlToImage(
-            item.url,
-            path.join(project.get('directory'), execName, ( new Buffer(item.url) ).toString("base64")) + '.png',
-            {
-                requestTimeout: item.delay
-            }
-        ).then(function () {
-            success++;
-            display()
-            // now google.png exists and contains screenshot of google.com
-        }).catch(function (err) {
-            errors++;
-            display();
-            errorsMessage += "<br>" + err.message;
-            console.error(err);
-        });
+    display();
+
+    var queue = new Queue(defaultConfigOptions.maxClientCount || 5, Infinity);
+    fs.mkdirSync(path.join(project.get('directory'), execName));
+    Promise.all(projectConfigUrlList.map(function (item) {
+        queue.add(() => {
+            return new Promise((resolve, reject) => {
+                let testCase;
+                switch (item.testType || 'default') {
+                    case 'waitForTime':
+                        testCase = waitForTimeTestCase;
+                        break;
+                    case 'waitForText':
+                        testCase = waitForTextTestCase;
+                        break;
+                    case 'waitForElement':
+                        testCase = waitForElementTestCase;
+                        break;
+                    case 'customTest':
+                        if (!fs.existsSync(item.testConfigValue)) {
+                            if (!fs.existsSync(path.join(project.get('directory'), item.testConfigValue))) {
+                                return reject('test case file not found! ' + item.testConfigValue)
+                            }
+
+                            item.testConfigValue = path.join(project.get('directory'), item.testConfigValue);
+                        }
+                        testCase = require(item.testConfigValue);
+                        break;
+                    default:
+                        testCase = defaultTestCase;
+                        break;
+                }
+                const browser = testCase({
+                    webDriverIo: webdriverio,
+                    defaultConfig: defaultConfigOptions,
+                    test: item
+                });
+                return browser.saveScreenshot()
+                    .then((buffer) => {
+                        return browser.end().then(() => {
+                            fs.writeFileSync(path.join(project.get('directory'), execName, ( new Buffer(item.url) ).toString("base64")) + '.png', buffer);
+                            resolve()
+                        })
+                    }).catch((err) => {
+                        console.log('errrrr', err);
+                        reject(err)
+                        browser.end()
+                    })
+
+            }).then(function () {
+                success++;
+                display()
+                // now google.png exists and contains screenshot of google.com
+            }).catch(function (err) {
+                errors++;
+                errorsMessage += "<br>" + JSON.stringify(item) + err;
+                display();
+                console.error(err);
+            })
+        })
+
     })).then((function (theList) {
         const exec = project.get('executions');
         exec.push({ name: execName, time: new Date() });

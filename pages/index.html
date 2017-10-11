@@ -1,19 +1,35 @@
 <!DOCTYPE html>
 <html>
-  <head>
+<head>
     <meta charset="UTF-8">
     <title>TicQ!</title>
-  </head>
-  <body>
-    <h1>ProjectList</h1> <div>User configuration: <span id="userData"></span></div>
-    <div>
-      <input type="text" name="addProjectTextEL" placeholder="project name" id="addProjectTextEL">
-      <button id="addProjectButtonEl">Add</button>
-      <ul id="projectListEl"></ul>
-    </div>
-    <script>
-      // You can also require other files to run in this process
-      require('./renderer.js')
-    </script>
-  </body>
+</head>
+<body>
+<h1>ProjectList</h1>
+<div>User configuration: <span id="userData"></span></div>
+<div id="loadingAPP" class="fullscreenAppLoader">Loading selenium server</div>
+<div>
+    <input type="text" name="addProjectTextEL" placeholder="project name" id="addProjectTextEL">
+    <button id="addProjectButtonEl">Add</button>
+    <ul id="projectListEl"></ul>
+</div>
+<script>
+    // You can also require other files to run in this process
+    require('./renderer.js')
+</script>
+<style>
+    #loadingAPP{
+        display: none;
+    }
+    #loadingAPP.fullscreenAppLoader {
+        position: fixed;
+        top: 0;
+        left: 0;
+        display: block;
+        width: 100%;
+        height: 100%;
+        background: #FFF;
+    }
+</style>
+</body>
 </html>

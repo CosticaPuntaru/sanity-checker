@@ -1,6 +1,6 @@
 {
   "name": "TicQ",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Prototype for aqa site image compare",
   "main": "main.js",
   "scripts": {
@@ -24,16 +24,17 @@
     "electron-builder": "^19.33.0"
   },
   "dependencies": {
+    "lodash": "^4.17.4",
     "looks-same": "^3.2.1",
-    "bluebird": "3.0.x",
-    "lodash": "^4.17.3",
-    "phantomjs": "2.1.7",
-    "yargs": "3.29.x"
+    "promise-queue": "^2.2.3",
+    "selenium-standalone": "^6.9.0",
+    "url-to-image": "1.0.0",
+    "webdriverio": "^4.8.0"
   },
   "build": {
-    "appId": "TicaQA",
+    "appId": "TicQ",
     "mac": {
-      "category": "com.tica.qaImageCompare"
+      "category": "your.app.category.type"
     }
   }
 }

@@ -4,8 +4,37 @@ const remote = require('electron').remote;
 const addProjectTextEL = document.getElementById('addProjectTextEL');
 const addProjectButtonEl = document.getElementById('addProjectButtonEl');
 const projectListEl = document.getElementById('projectListEl');
-document.getElementById('userData').innerHTML = userConfig.userDataConfig;
+var selenium = require('selenium-standalone')
+var install = new Promise(function (resolve, reject) {
+    selenium.install({}, function (error) {
+        if (error) {
+            reject(error);
+        } else {
+            resolve()
+        }
+    })
+})
 
+var start = install.then(function () {
+    new Promise(function (resolve, reject) {
+        selenium.start({}, function (error) {
+            if (error) {
+                reject(error);
+            } else {
+                resolve()
+            }
+        })
+    })
+})
+
+document.getElementById('userData').innerHTML = userConfig.userDataConfig;
+const loadingAPPEL = document.getElementById('loadingAPP');
+
+start.then(() => {
+    loadingAPPEL.classList.remove('fullscreenAppLoader');
+}).catch((err) => {
+    alert(err)
+})
 const projects = userConfig.getConfig().projects;
 function renderProjectList() {
     projectListEl.innerHTML = '';
